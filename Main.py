@@ -3,6 +3,9 @@ from PyQt5.QtCore import (QCoreApplication, QDate, QDateTime, QMetaObject,QObjec
 from PyQt5.QtGui import (QBrush, QColor, QConicalGradient, QCursor, QFont,QFontDatabase, QIcon, QKeySequence, QLinearGradient, QPalette, QPainter,QPixmap, QRadialGradient)
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLabel, QTableWidget, QTableWidgetItem, QGroupBox, QComboBox, QDateEdit, QLineEdit, QTabWidget, QSpinBox, QVBoxLayout
 from MainWindow import Ui_Form
+from WorkWithSqlite import DB
+from matplotlib import pyplot as plt
+import numpy as np
 
 
 class MainLogic(QWidget, Ui_Form):
