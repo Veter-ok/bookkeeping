@@ -20,19 +20,8 @@ class MainLogic(QWidget, Ui_Form):
         self.percentCapital = 0
 
         self.setupUi(self)
-        self.DataCollection() # сбор данных из файлов и бызы данных
+        self.DataCollection() # сбор данных из файлов и быз данных
         self.FillTable()
-
-        # Шапки таблиц
-        self.tableExpenses.setItem(0,0, QTableWidgetItem("Сумма"))
-        self.tableExpenses.setItem(0,1, QTableWidgetItem("Продукт"))
-        self.tableExpenses.setItem(0,2, QTableWidgetItem("Дата"))
-        self.tableExpenses.setItem(0,3, QTableWidgetItem("Тип"))
-
-        self.tableIncome.setItem(0,0, QTableWidgetItem("Сумма"))
-        self.tableIncome.setItem(0,1, QTableWidgetItem("Продукт"))
-        self.tableIncome.setItem(0,2, QTableWidgetItem("Дата"))
-        self.tableIncome.setItem(0,3, QTableWidgetItem("Тип"))
 
         # команды для кнопок
         self.Add.clicked.connect(self.AddExpensesIncome)
@@ -40,26 +29,12 @@ class MainLogic(QWidget, Ui_Form):
         self.chartBtn.clicked.connect(self.Charts)
         self.DeletBtn.clicked.connect(self.DeleteExpensesIncome)
 
-    def DataCollection(self): # сбор данных из файлов и бызы данных
-        data = DB.SelectData(bd_i=0)
-        if len(data) != 0:
-            for item in data:
-                items = {}
-                items['price'] = int(item[2])
-                items['product'] = item[3]
-                items['date'] = datetime.strptime(item[4], '%Y-%m-%d').date()
-                items['type'] = item[5]
-                self.Expenses.append(items)
 
-        data = DB.SelectData(bd_i=1)
-        if len(data) != 0:
-            for item in data:
-                items = {}
-                items['price'] = int(item[2])
-                items['product'] = item[3]
-                items['date'] = datetime.strptime(item[4], '%Y-%m-%d').date()
-                items['type'] = item[5]
-                self.Income.append(items)
+    def DataCollection(self): # сбор данных из файлов и бызы данных
+        self.Expenses = DB.SelectData(bd_i=0)
+        self.Income = DB.SelectData(bd_i=1)
+        self.Took = DB.SelectData(bd_i=2)
+        self.Gave = DB.SelectData(bd_i=3)
 
         file = open('inform/TotalExpenses.txt')
         self.totalExpenses = int(file.readline())
@@ -76,31 +51,51 @@ class MainLogic(QWidget, Ui_Form):
 
         self.percentCapital = round((self.NowCapital * 100 / self.StartCapital - 100), 2)
         if self.percentCapital < 0:
-            self.percentCapital = str(self.percentCapital) + "%"
-            self.percentTotalLabel.setStyleSheet(u"font-size: 39px;\n""color: red;")
+            self.percentTotalLabel.setText(str(self.percentCapital) + "% (" + str(self.NowCapital - self.StartCapital) + ")")
+            self.percentTotalLabel.setStyleSheet("font-size: 39px;\n""color: red;")
+        elif self.percentCapital > 0:
+            self.percentTotalLabel.setText(str(self.percentCapital) + "% (" + str(self.NowCapital - self.StartCapital) + ")")
+            self.percentTotalLabel.setStyleSheet("font-size: 39px;\n""color: green;")
         else:
-            self.percentCapital = "+" + str(self.percentCapital) + "%"
-            self.percentTotalLabel.setStyleSheet(u"font-size: 39px;\n""color: green;")
+            self.percentTotalLabel.setText(str(int(self.percentCapital)) + "%")
+            self.percentTotalLabel.setStyleSheet("font-size: 39px;\n""color: black;")
 
 
     def FillTable(self):
+        for item in self.Took:
+            self.sourceEntery.addItem(item['fromWhom'])
+
         self.TotalLabel.setText("Итоговй расход: "+str(self.totalExpenses))
         self.TotalLabel_2.setText("Итог:  "+str(self.NowCapital))
-        self.percentTotalLabel.setText(str(self.percentCapital))
 
         for i in range(len(self.Expenses)):
             price = str(self.Expenses[i]['price'])
-            self.tableExpenses.setItem(i+1, 0, QTableWidgetItem(price))
-            self.tableExpenses.setItem(i+1, 1, QTableWidgetItem(self.Expenses[i]['product']))
-            self.tableExpenses.setItem(i+1, 2, QTableWidgetItem(str(self.Expenses[i]['date'])))
-            self.tableExpenses.setItem(i+1, 3, QTableWidgetItem(self.Expenses[i]['type']))
+            self.tableExpenses.setItem(i, 0, QTableWidgetItem(price))
+            self.tableExpenses.setItem(i, 1, QTableWidgetItem(self.Expenses[i]['product']))
+            self.tableExpenses.setItem(i, 2, QTableWidgetItem(str(self.Expenses[i]['date'])))
+            self.tableExpenses.setItem(i, 3, QTableWidgetItem(self.Expenses[i]['type']))
 
         for i in range(len(self.Income)):
             price = str(self.Income[i]['price'])
-            self.tableIncome.setItem(i+1, 0, QTableWidgetItem(price))
-            self.tableIncome.setItem(i+1, 1, QTableWidgetItem(self.Income[i]['product']))
-            self.tableIncome.setItem(i+1, 2, QTableWidgetItem(str(self.Income[i]['date'])))
-            self.tableIncome.setItem(i+1, 3, QTableWidgetItem(self.Income[i]['type']))
+            self.tableIncome.setItem(i, 0, QTableWidgetItem(price))
+            self.tableIncome.setItem(i, 1, QTableWidgetItem(self.Income[i]['product']))
+            self.tableIncome.setItem(i, 2, QTableWidgetItem(str(self.Income[i]['date'])))
+            self.tableIncome.setItem(i, 3, QTableWidgetItem(self.Income[i]['type']))
+
+        for i in range(len(self.Took)):
+            price = str(self.Took[i]['price'])
+            self.tableTook.setItem(i, 0, QTableWidgetItem(price))
+            self.tableTook.setItem(i, 1, QTableWidgetItem(self.Took[i]['fromWhom']))
+            self.tableTook.setItem(i, 2, QTableWidgetItem(str(self.Took[i]['tookDate'])))
+            self.tableTook.setItem(i, 3, QTableWidgetItem(price))
+
+        for i in range(len(self.Gave)):
+            price = str(self.Gave[i]['price'])
+            self.tableGave.setItem(i, 0, QTableWidgetItem(price))
+            self.tableGave.setItem(i, 1, QTableWidgetItem(self.Gave[i]['Whom']))
+            self.tableGave.setItem(i, 2, QTableWidgetItem(str(self.Gave[i]['gaveDate'])))
+            self.tableGave.setItem(i, 3, QTableWidgetItem(price))
+
 
     def AddExpensesIncome(self):
         if self.MainTab.currentIndex() == 0:
@@ -113,24 +108,28 @@ class MainLogic(QWidget, Ui_Form):
                 self.TotalLabel.setText("Итоговый расход: " + str(self.totalExpenses))
                 self.TotalLabel_2.setText("Итог: " + str(self.NowCapital))
 
-                self.tableExpenses.setItem((len(self.Expenses)+1), 0, QTableWidgetItem(price))
-                self.tableExpenses.setItem((len(self.Expenses)+1), 1, QTableWidgetItem(self.ProductEntery.text()))
-                self.tableExpenses.setItem((len(self.Expenses)+1), 2, QTableWidgetItem(str(date)))
-                self.tableExpenses.setItem((len(self.Expenses)+1), 3, QTableWidgetItem(self.TypeEntery.currentText()))
+                self.tableExpenses.setItem((len(self.Expenses)), 0, QTableWidgetItem(price))
+                self.tableExpenses.setItem((len(self.Expenses)), 1, QTableWidgetItem(self.ProductEntery.text()))
+                self.tableExpenses.setItem((len(self.Expenses)), 2, QTableWidgetItem(str(date)))
+                self.tableExpenses.setItem((len(self.Expenses)), 3, QTableWidgetItem(self.TypeEntery.currentText()))
 
                 items = {}
+                items['id'] = len(self.Expenses)+1
                 items['price'] = int(price)
                 items['product'] = self.ProductEntery.text()
                 items['date'] = date
                 items['type'] = self.TypeEntery.currentText()
                 self.Expenses.append(items)
 
-                DB.AddData(self.Expenses[-1], len(self.Expenses), 0)
+                DB.AddData(self.Expenses[-1], 0)
 
                 file = open('inform/TotalExpenses.txt','w')
                 file.write(str(self.totalExpenses))
                 file.close()
-        else:
+
+                self.PriceEntery.clear()
+                self.ProductEntery.clear()
+        elif self.MainTab.currentIndex() == 1:
             price = self.PriceEntery.text()
             if price.isdigit():
                 date = self.ConvertQdateToDatetime(self.DateEntery.date())
@@ -140,84 +139,150 @@ class MainLogic(QWidget, Ui_Form):
                 self.TotalLabel.setText("Итоговый доход: " + str(self.totalIncome))
                 self.TotalLabel_2.setText("Итог: " + str(self.NowCapital))
 
-                self.tableIncome.setItem((len(self.Income)+1), 0, QTableWidgetItem(price))
-                self.tableIncome.setItem((len(self.Income)+1), 1, QTableWidgetItem(self.ProductEntery.text()))
-                self.tableIncome.setItem((len(self.Income)+1), 2, QTableWidgetItem(str(date)))
-                self.tableIncome.setItem((len(self.Income)+1), 3, QTableWidgetItem(self.TypeEntery.currentText()))
+                self.tableIncome.setItem((len(self.Income)), 0, QTableWidgetItem(price))
+                self.tableIncome.setItem((len(self.Income)), 1, QTableWidgetItem(self.ProductEntery.text()))
+                self.tableIncome.setItem((len(self.Income)), 2, QTableWidgetItem(str(date)))
+                self.tableIncome.setItem((len(self.Income)), 3, QTableWidgetItem(self.TypeEntery.currentText()))
 
                 items = {}
+                items['id'] = len(self.Income)
                 items['price'] = price
                 items['product'] = self.ProductEntery.text()
                 items['date'] = date
                 items['type'] = self.TypeEntery.currentText()
                 self.Income.append(items)
 
-                DB.AddData(self.Income[-1], len(self.Income), 1)
+                DB.AddData(self.Income[-1], 1)
 
                 file = open('inform/TotalIncome.txt','w')
                 file.write(str(self.totalIncome))
                 file.close()
 
+                self.PriceEntery.clear()
+                self.ProductEntery.clear()
+        elif self.MainTab.currentIndex() == 2:
+            price = self.PriceEntery.text()
+            if price.isdigit():
+                date = self.ConvertQdateToDatetime(self.DateEntery.date())
+                self.totalIncome += int(price)
+                self.NowCapital += int(price)
+                self.TotalLabel.setText("Итоговый доход: " + str(self.totalIncome))
+                self.TotalLabel_2.setText("Итог: " + str(self.NowCapital))
+
+                self.tableTook.setItem((len(self.Income)), 0, QTableWidgetItem(price))
+                self.tableTook.setItem((len(self.Income)), 1, QTableWidgetItem(self.ProductEntery.text()))
+                self.tableTook.setItem((len(self.Income)), 2, QTableWidgetItem(str(date)))
+
+                items = {}
+                items['id'] = len(self.Income)
+                items['price'] = price
+                items['fromWhom'] = self.ProductEntery.text()
+                items['date'] = date
+                self.Income.append(items)
+
+                DB.AddData(self.Income[-1], 2)
+
+                file = open('inform/TotalIncome.txt','w')
+                file.write(str(self.totalIncome))
+                file.close()
+        elif self.MainTab.currentIndex() == 3:
+            price = self.PriceEntery.text()
+            if price.isdigit():
+                date = self.ConvertQdateToDatetime(self.DateEntery.date())
+                self.totalExpenses += int(price)
+                self.NowCapital += int(price)
+                self.TotalLabel.setText("Итоговый расходов: " + str(self.totalExpenses))
+                self.TotalLabel_2.setText("Итог: " + str(self.NowCapital))
+
+                self.tableGave.setItem((len(self.Expenses)), 0, QTableWidgetItem(price))
+                self.tableGave.setItem((len(self.Expenses)), 1, QTableWidgetItem(self.ProductEntery.text()))
+                self.tableGave.setItem((len(self.Expenses)), 2, QTableWidgetItem(str(date)))
+
+                items = {}
+                items['id'] = len(self.Expenses)
+                items['price'] = price
+                items['fromWhom'] = self.ProductEntery.text()
+                items['date'] = date
+                self.Expenses.append(items)
+
+                DB.AddData(self.Expenses[-1], 3)
+
+                file = open('inform/TotalExpenses.txt','w')
+                file.write(str(self.totalExpenses))
+                file.close()
+
+
         self.percentCapital = round((self.NowCapital * 100 / self.StartCapital - 100), 2)
         if self.percentCapital < 0:
-            self.percentCapital = str(self.percentCapital) + "%"
+            self.percentTotalLabel.setText(str(self.percentCapital) + "% (" + str(self.NowCapital - self.StartCapital) + ")")
             self.percentTotalLabel.setStyleSheet(u"font-size: 39px;\n""color: red;")
-        else:
-            self.percentCapital = "+" + str(self.percentCapital) + "%"
+        elif self.percentCapital > 0:
+            self.percentTotalLabel.setText("+" + str(self.percentCapital) + "% (+" + str(self.NowCapital - self.StartCapital) + ")")
             self.percentTotalLabel.setStyleSheet(u"font-size: 39px;\n""color: green;")
-        self.percentTotalLabel.setText(str(self.percentCapital))
+        else:
+            self.percentTotalLabel.setText(str(int(self.percentCapital)) + "%")
+            self.percentTotalLabel.setStyleSheet(u"font-size: 39px;\n""color: black;")
 
 
 
     def DeleteExpensesIncome(self):
         if self.MainTab.currentIndex() == 0:
-            self.tableExpenses.removeRow(self.RowDelet.value()-1)
-            self.totalExpenses -= self.Expenses[self.RowDelet.value()-2]['price']
-            self.NowCapital += self.Expenses[self.RowDelet.value()-2]['price']
-            self.TotalLabel.setText("Итоговый расход: " + str(self.totalExpenses))
-            self.TotalLabel_2.setText("Итог: " + str(self.NowCapital))
+            try:
+                self.tableExpenses.removeRow(self.RowDelet.value()-1)
+                self.totalExpenses -= self.Expenses[self.RowDelet.value()-2]['price']
+                self.NowCapital += self.Expenses[self.RowDelet.value()-2]['price']
+                self.TotalLabel.setText("Итоговый расход: " + str(self.totalExpenses))
+                self.TotalLabel_2.setText("Итог: " + str(self.NowCapital))
 
-            DB.DeleteData(self.RowDelet.value()-1, 0)
+                DB.DeleteData(self.Expenses[self.RowDelet.value()-2]['id'], 0)
 
-            file = open('inform/TotalExpenses.txt', 'w')
-            file.write(str(self.totalExpenses))
-            file.close()
+                file = open('inform/TotalExpenses.txt', 'w')
+                file.write(str(self.totalExpenses))
+                file.close()
 
-            informDelet = self.ConvertInformToString(self.Expenses[self.RowDelet.value()-2])
-            self.Expenses.pop(self.RowDelet.value()-2)
+                informDelet = self.ConvertInformToString(self.Expenses[self.RowDelet.value()-2])
+                del self.Expenses[self.RowDelet.value()-2]
+            except IndexError:
+                pass
+        elif self.MainTab.currentIndex() == 1:
+            try:
+                self.tableIncome.removeRow(self.RowDelet.value()-1)
+                self.totalIncome -= int(self.Income[self.RowDelet.value()-2]['price'])
+                self.NowCapital -= int(self.Income[self.RowDelet.value()-2]['price'])
+                self.TotalLabel.setText("Итоговый доходов: "+str(self.totalIncome))
+                self.TotalLabel_2.setText("Итог: " + str(self.NowCapital))
+
+                DB.DeleteData(self.Income[self.RowDelet.value()-2]['id'], 1)
+
+                file = open('inform/TotalIncome.txt', 'w')
+                file.write(str(self.totalIncome))
+                file.close()
+
+                informDelet = self.ConvertInformToString(self.Income[self.RowDelet.value()-2])
+                del self.Income[self.RowDelet.value()-2]
+            except IndexError:
+                pass
+
+        self.percentCapital = round((self.NowCapital * 100 / self.StartCapital - 100), 2)
+        if self.percentCapital < 0:
+            self.percentTotalLabel.setText(str(self.percentCapital) + "% (" + str(self.NowCapital - self.StartCapital) + ")")
+            self.percentTotalLabel.setStyleSheet(u"font-size: 39px;\n""color: red;")
+        elif self.percentCapital > 0:
+            self.percentTotalLabel.setText("+" + str(self.percentCapital) + "% (+" + str(self.NowCapital - self.StartCapital) + ")")
+            self.percentTotalLabel.setStyleSheet(u"font-size: 39px;\n""color: green;")
         else:
-            self.tableExpenses.removeRow(self.RowDelet.value()-1)
-            self.totalExpenses -= self.Income[self.RowDelet.value()-2]['price']
-            self.NowCapital -= self.Income[self.RowDelet.value()-2]['price']
-            self.TotalLabel.setText("Итоговый доходов: "+str(self.totalIncome))
-            self.TotalLabel_2.setText("Итог: " + str(self.NowCapital))
-
-            DB.DeleteData(self.RowDelet.value()-1, 1)
-
-            file = open('inform/TotalIncome.txt', 'w')
-            file.write(str(self.totalIncome))
-            file.close()
-
-            informDelet = self.ConvertInformToString(self.Income[self.RowDelet.value()-2])
-            self.Income.pop(self.RowDelet.value()-2)
+            self.percentTotalLabel.setText(str(int(self.percentCapital)) + "%")
+            self.percentTotalLabel.setStyleSheet(u"font-size: 39px;\n""color: black;")
 
 
     def Charts(self):
-        price = []
-        product = []
-        date = []
-        types = []
         if self.MainTab.currentIndex() == 0:
-            for item in self.Expenses:
-                price.append(item['price'])
-                if self.TypesCharts.currentText() == "по времени":
-                    date.append(item['date'])
-                elif self.TypesCharts.currentText() == "по типам":
-                    types.append(item['type'])
-                else:
-                    product.append(item['product'])
-
             if self.TypesCharts.currentText() == "по времени":
+                price = []
+                date = []
+                for item in self.Expenses:
+                    price.append(item['price'])
+                    date.append(item['date'])
                 plt.style.use("seaborn")
                 plt.plot_date(date, price, linestyle='solid')
                 plt.gcf().autofmt_xdate()
@@ -225,13 +290,15 @@ class MainLogic(QWidget, Ui_Form):
                 plt.ylabel("Расходы")
                 plt.show()
             elif self.TypesCharts.currentText() == "по типам":
+                typeData, price = self.collectionTypesData(self.Expenses, 'type') 
                 plt.style.use("fivethirtyeight")
-                plt.bar(types, price)
+                plt.bar(typeData, price)
                 plt.xlabel("Типы расходов")
                 plt.ylabel("Расходы")
                 plt.tight_layout()
                 plt.show()
             elif self.TypesCharts.currentText() == "по продуктам":
+                product, price = self.collectionTypesData(self.Expenses, 'product') 
                 plt.style.use("fivethirtyeight")
                 plt.bar(product, price)
                 plt.xlabel("продукты")
@@ -239,16 +306,12 @@ class MainLogic(QWidget, Ui_Form):
                 plt.tight_layout()
                 plt.show()
         else:
-            for item in self.Income:
-                price.append(item['price'])
-                if self.TypesCharts.currentText() == "по времени":
-                    date.append(item['date'])
-                elif self.TypesCharts.currentText() == "по типам":
-                    types.append(item['type'])
-                else:
-                    product.append(item['product'])
-
             if self.TypesCharts.currentText() == "по времени":
+                price = []
+                date = []
+                for item in self.Income:
+                    price.append(item['price'])
+                    date.append(item['date'])
                 plt.style.use("seaborn")
                 plt.plot_date(date, price, linestyle='solid')
                 plt.gcf().autofmt_xdate()
@@ -256,6 +319,7 @@ class MainLogic(QWidget, Ui_Form):
                 plt.ylabel("Доход")
                 plt.show()
             elif self.TypesCharts.currentText() == "по типам":
+                types, price = self.collectionTypesData(self.Income, 'type') 
                 plt.style.use("fivethirtyeight")
                 plt.bar(types, price)
                 plt.xlabel("Типы расходов")
@@ -263,6 +327,7 @@ class MainLogic(QWidget, Ui_Form):
                 plt.tight_layout()
                 plt.show()
             elif self.TypesCharts.currentText() == "по продуктам":
+                product, price = self.collectionTypesData(self.Income, 'product') 
                 plt.style.use("fivethirtyeight")
                 plt.bar(product, price)
                 plt.xlabel("продукты")
@@ -272,8 +337,8 @@ class MainLogic(QWidget, Ui_Form):
         if self.TypesCharts.currentText() == "общая":
             months = ['январь','февраль','март','апрель','март','июнь','июль','август','сетябрь','октябрь','ноябрь','декабрь']
             months_y = np.arange(len(months))
-            MonthsExpeneses = self.CollectionMonthsData(self.Expenses)
-            MonthsIncome = self.CollectionMonthsData(self.Income)
+            MonthsExpeneses = self.collectionMonthsData(self.Expenses)
+            MonthsIncome = self.collectionMonthsData(self.Income)
 
             plt.style.use("fivethirtyeight")
             plt.bar(months_y - 0.25, MonthsExpeneses, width=0.25, color="#F74056", label="Расходы")
@@ -287,13 +352,14 @@ class MainLogic(QWidget, Ui_Form):
             plt.show()
 
 
-
     def ChangeTab(self):
         if self.MainTab.currentIndex() == 0:
             self.TypeEntery.clear()
             self.TypeEntery.addItem("продукты")
             self.TypeEntery.addItem("транспорт")
             self.TypeEntery.addItem("развлечения")
+            self.TypeEntery.addItem("налоги")
+            self.TypeEntery.addItem("кафе и рестораны")
             self.TypeEntery.addItem("техника")
             self.TypeEntery.addItem("одежда")
             self.TypeEntery.addItem("учёба")
@@ -302,17 +368,62 @@ class MainLogic(QWidget, Ui_Form):
             self.TotalLabel.setText("Итоговый расход: "+str(self.totalExpenses))
             self.groupBox.setTitle("Добавить Расход")
             self.groupBoxType.setTitle("Удалить Расход")
-        else:
+            self.TypeLabel.show()
+            self.TypeEntery.show()
+            self.DateLabel.setGeometry(20, 270, 130, 31)
+            self.DateEntery.setGeometry(200, 270, 200, 40)
+        elif self.MainTab.currentIndex() == 1:
             self.TypeEntery.clear()
             self.TypeEntery.addItem("работа")
             self.TypeEntery.addItem("проценты")
             self.TypeEntery.addItem("кэшбэки")
+            self.TypeEntery.addItem("интернет")
             self.TypeEntery.addItem("папа и мама")
             self.TypeEntery.addItem("бабушка")
             self.TypeEntery.addItem("давяни")
             self.TotalLabel.setText("Итоговый доход: "+str(self.totalIncome))
             self.groupBox.setTitle("Добавить Доход")
             self.groupBoxType.setTitle("Удалить Доход")
+            self.TypeLabel.show()
+            self.TypeEntery.show()
+            self.DateLabel.setGeometry(20, 270, 130, 31)
+            self.DateEntery.setGeometry(200, 270, 200, 40)
+        elif self.MainTab.currentIndex() == 2:
+            self.groupBox.setTitle("Добавить Доход")
+            self.ProductLabel.setText("У кого")
+            self.TypeLabel.hide()
+            self.TypeEntery.hide()
+            self.DateLabel.setGeometry(20, 210, 130, 31)
+            self.DateEntery.setGeometry(200, 210, 200, 40)
+        elif self.MainTab.currentIndex() == 3:
+            self.groupBox.setTitle("Добавить Расход")
+            self.ProductLabel.setText("Кому")
+            self.TypeLabel.hide()
+            self.TypeEntery.hide()
+            self.DateLabel.setGeometry(20, 210, 130, 31)
+            self.DateEntery.setGeometry(200, 210, 200, 40)
+
+
+    def collectionTypesData(self, data, typeData):
+        types = []
+        prices = []
+        for i in data:
+            if i[typeData] in types:
+                index = types.index(i[typeData])
+                prices[index] += i['price']
+            else:
+                types.append(i[typeData])
+                prices.append(i['price'])
+        return types, prices
+
+
+    def collectionMonthsData(self,data):
+        now_year = datetime.now().year
+        prices = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        for item in data:
+            if item['date'].year == now_year:
+                prices[item['date'].month-1] += int(item['price'])
+        return prices
 
 
     def ConvertQdateToDatetime(self, QdateArg):
@@ -328,14 +439,6 @@ class MainLogic(QWidget, Ui_Form):
     def ConvertInformToString(self, informArg):
         informStr = str(informArg['price']) + "." + informArg['product'] + "." + str(informArg['date']) + "." + informArg['type']
         return informStr
-
-    def CollectionMonthsData(self,data):
-        now_year = datetime.now().year
-        prices = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        for item in data:
-            if item['date'].year == now_year:
-                prices[item['date'].month-1] += int(item['price'])
-        return prices
 
 
 if __name__ == "__main__":

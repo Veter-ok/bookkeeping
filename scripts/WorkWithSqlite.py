@@ -16,7 +16,7 @@ class DB(object):
             price INT NOT NULL,
             product TEXT(255) NOT NULL,
             ExDate DATETIME NOT NULL,
-            type TEXT(255)
+            type TEXT(255) NOT NULL
             )""")
         BookkeepingDB.commit()
 
@@ -30,75 +30,89 @@ class DB(object):
             )""")
         BookkeepingDB.commit()
 
+        cursor.execute("""CREATE TABLE IF NOT EXISTS Took(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            deleteFlag BOOLEAN NOT NULL,
+            price INT NOT NULL,
+            fromWhom TEXT(255) NOT NULL,
+            tookDate DATETIME NOT NULL
+            )""")
+        BookkeepingDB.commit()
+
+        cursor.execute("""CREATE TABLE IF NOT EXISTS Gave(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            deleteFlag BOOLEAN NOT NULL,
+            price INT NOT NULL,
+            whom TEXT(255) NOT NULL,
+            gaveDate DATETIME NOT NULL
+            )""")
+        BookkeepingDB.commit()
+
         return BookkeepingDB
 
-    def AddData(data, idData, bd_i):
+    def AddData(data, bd_i):
         db = DB.connectBD()
         cursor = db.cursor()
         if bd_i == 0:
             cursor.execute("INSERT INTO Expenses(deleteFlag, price, product, Exdate, type) VALUES(?,?,?,?,?)", (False, data['price'], data['product'], data['date'], data['type']))
-        else:
+        elif bd_i == 1:
             cursor.execute("INSERT INTO Income(deleteFlag, price, product, Incdate, type) VALUES(?,?,?,?,?)", (False, data['price'], data['product'], data['date'], data['type']))
+        elif bd_i == 2:
+            cursor.execute("INSERT INTO Took(deleteFlag, price, fromWhom, tookDate) VALUES(?,?,?,?)", (False, data['price'], data['fromWhom'], data['date']))
+        elif bd_i == 3:
+            cursor.execute("INSERT INTO Gave(deleteFlag, price, whom, gaveDate) VALUES(?,?,?,?)", (False, data['price'], data['whom'], data['date']))
         db.commit()
+
 
     def SelectData(data='ALL',number=0, bd_i=0):
         bd = DB.connectBD()
         cursor = bd.cursor()
         dataOutput = []
         if bd_i == 0:
-            if data == 'ALL':
-                for item in cursor.execute(f"SELECT * FROM Expenses WHERE deleteFlag = {0}"):
-                    dataOutput.append(item)
-            elif data == 'price':
-                for item in cursor.execute(f"SELECT price FROM Expenses WHERE deleteFlag = {0}"):
-                    dataOutput.append(item)
-            elif data == 'product':
-                for item in cursor.execute(f"SELECT product FROM Expenses WHERE deleteFlag = {0}"):
-                    dataOutput.append(item)
-            elif data == 'date':
-                for item in cursor.execute(f"SELECT Exdate FROM Expenses WHERE deleteFlag = {0}"):
-                    dataOutput.append(item)
-            elif data == 'type':
-                for item in cursor.execute(f"SELECT type FROM Expenses WHERE deleteFlag = {0}"):
-                    dataOutput.append(item)
-        else:
-            if data == 'ALL':
-                for item in cursor.execute(f"SELECT * FROM Income WHERE deleteFlag = {0}"):
-                    dataOutput.append(item)
-            elif data == 'price':
-                for item in cursor.execute(f"SELECT price FROM Income WHERE deleteFlag = {0}"):
-                    dataOutput.append(item)
-            elif data == 'product':
-                for item in cursor.execute(f"SELECT product FROM Income WHERE deleteFlag = {0}"):
-                    dataOutput.append(item)
-            elif data == 'date':
-                for item in cursor.execute(f"SELECT Incdate FROM Income WHERE deleteFlag = {0}"):
-                    dataOutput.append(item)
-            elif data == 'type':
-                for item in cursor.execute(f"SELECT type FROM Income WHERE deleteFlag = {0}"):
-                    dataOutput.append(item)
+            for i in cursor.execute(f"SELECT * FROM Expenses WHERE deleteFlag = {0}"):
+                item = {}
+                item['id'] = i[0]
+                item['price'] = i[2]
+                item['product'] = i[3]
+                item['date'] = datetime.strptime(i[4], '%Y-%m-%d').date()
+                item['type'] = i[5]
+                dataOutput.append(item)
+        elif bd_i == 1:
+            for i in cursor.execute(f"SELECT * FROM Income WHERE deleteFlag = {0}"):
+                item = {}
+                item['id'] = i[0]
+                item['price'] = i[2]
+                item['product'] = i[3]
+                item['date'] = datetime.strptime(i[4], '%Y-%m-%d').date()
+                item['type'] = i[5]
+                dataOutput.append(item)
+        elif bd_i == 2:
+            for i in cursor.execute(f"SELECT * FROM Took WHERE deleteFlag = {0}"):
+                item = {}
+                item['id'] = i[0]
+                item['price'] = i[2]
+                item['fromWhom'] = i[3]
+                item['tookDate'] = datetime.strptime(i[4], '%Y-%m-%d').date()
+                dataOutput.append(item)
+        elif bd_i == 3:
+            for i in cursor.execute(f"SELECT * FROM Gave WHERE deleteFlag = {0}"):
+                item = {}
+                item['id'] = i[0]
+                item['price'] = i[2]
+                item['Whom'] = i[3]
+                item['gaveDate'] = datetime.strptime(i[4], '%Y-%m-%d').date()
+                dataOutput.append(item)
         bd.commit()
         return dataOutput
 
 
-    def DeleteData(row, bd_i):
+    def DeleteData(id_row,bd_i):
         bd = DB.connectBD()
         cursor = bd.cursor()
-        i = 1
         if bd_i == 0:
-            for idItem in cursor.execute(f"SELECT id FROM Expenses WHERE deleteFlag = {0}"):
-                if i == row:
-                    id_delete = idItem[0]
-                    break
-                i += 1
-            cursor.execute(f"UPDATE Expenses SET deleteFlag = {True} WHERE id = {id_delete}")
-        else:
-            for idItem in cursor.execute(f"SELECT id FROM Income WHERE deleteFlag = {0}"):
-                if i == row:
-                    id_delete = idItem[0]
-                    break
-                i += 1
-            cursor.execute(f"UPDATE Income SET deleteFlag = {True} WHERE id = {id_delete}")
+            cursor.execute(f"UPDATE Expenses SET deleteFlag = {True} WHERE id = {id_row}")
+        elif bd_i == 1:
+            cursor.execute(f"UPDATE Income SET deleteFlag = {True} WHERE id = {id_row}")
         bd.commit()
 
     def UpdateData(id_start, id_new, bd_i):
@@ -106,6 +120,8 @@ class DB(object):
         cursor = bd.cursor()
         if bd_i == 0:
             cursor.execute(f"UPDATE Expenses SET id = {id_new} WHERE id = {id_start}")
+        elif bd_i == 1:
+            pass
         bd.commit()
 
 
@@ -114,6 +130,6 @@ class DB(object):
         cursor = bd.cursor()
         if bd_i == 0:
             cursor.execute(f"DELETE FROM Expenses")
-        else:
+        elif bd_i == 1:
             cursor.execute(f"DELETE FROM Income")
         bd.commit()
