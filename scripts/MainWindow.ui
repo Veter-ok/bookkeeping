@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>798</width>
+    <width>845</width>
     <height>665</height>
    </rect>
   </property>
@@ -15,7 +15,7 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="6" column="1">
+    <item row="6" column="2">
      <widget class="QGroupBox" name="groupBox">
       <property name="title">
        <string>Удалить данные</string>
@@ -34,7 +34,7 @@
       </layout>
      </widget>
     </item>
-    <item row="4" column="1" rowspan="2">
+    <item row="4" column="2" rowspan="2">
      <widget class="QGroupBox" name="paymentGroup">
       <property name="maximumSize">
        <size>
@@ -148,7 +148,7 @@
       </layout>
      </widget>
     </item>
-    <item row="7" column="1">
+    <item row="7" column="2">
      <widget class="QGroupBox" name="groupBox_2">
       <property name="font">
        <font>
@@ -186,7 +186,7 @@
       </layout>
      </widget>
     </item>
-    <item row="2" column="1">
+    <item row="2" column="2">
      <layout class="QHBoxLayout" name="horizontalLayout_3">
       <item>
        <widget class="QPushButton" name="pushButton_3">
@@ -197,14 +197,14 @@
       </item>
      </layout>
     </item>
-    <item row="8" column="1">
+    <item row="8" column="2">
      <widget class="QLabel" name="labelTotal">
       <property name="text">
        <string>Капитал</string>
       </property>
      </widget>
     </item>
-    <item row="3" column="1">
+    <item row="3" column="2">
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
        <widget class="QPushButton" name="pushButton_2">
@@ -218,7 +218,7 @@
       </item>
      </layout>
     </item>
-    <item row="1" column="1">
+    <item row="1" column="2">
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
        <widget class="QPushButton" name="pushButton">
@@ -233,11 +233,45 @@
      </layout>
     </item>
     <item row="1" column="0" rowspan="8">
-     <layout class="QVBoxLayout" name="verticalLayout">
-      <item>
-       <widget class="QComboBox" name="comboBox_4"/>
+     <layout class="QGridLayout" name="gridLayout_4">
+      <item row="0" column="2">
+       <widget class="QComboBox" name="sortBy">
+        <item>
+         <property name="text">
+          <string>дате</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>сумме</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>категории</string>
+         </property>
+        </item>
+       </widget>
       </item>
-      <item>
+      <item row="0" column="1">
+       <widget class="QLabel" name="label_5">
+        <property name="maximumSize">
+         <size>
+          <width>150</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>14</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Сортировка по...</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1" colspan="2">
        <widget class="QTableWidget" name="tablePayments">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
@@ -308,7 +342,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>798</width>
+     <width>845</width>
      <height>24</height>
     </rect>
    </property>

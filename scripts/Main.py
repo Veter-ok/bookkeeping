@@ -20,6 +20,7 @@ class Bookkepping(QMainWindow):
 		self.btnDeletePayment.clicked.connect(self.deletePayment)
 		self.radioBtnIncome1.toggled.connect(self.changePaymentTypes)
 		self.radioBtnExpense1.toggled.connect(self.changePaymentTypes)
+		self.sortBy.currentIndexChanged.connect(self.sortPaymnets)
 
 		self.user_data = self.db_controller.getUser()
 		self.payments = []
@@ -41,8 +42,21 @@ class Bookkepping(QMainWindow):
 			self.tablePayments.setItem(index, 1, QTableWidgetItem(payment[3]))
 			self.tablePayments.setItem(index, 2, QTableWidgetItem(payment[4]))
 			self.tablePayments.setItem(index, 3, QTableWidgetItem(payment[5]))
-			self.payments.append({'id': payment[0], 'price': payment[1], 'type': payment[3], 'comment': payment[4], 'date': payment[5]})
+			self.payments.append({'id': payment[0], 'price': payment[1], 'isIncome': payment[2], 'type': payment[3], 'comment': payment[4], 'date': payment[5]})
 		self.labelTotal.setText(f"Капитал: {self.total}$")
+
+	def updatePayments(self):
+		for _ in range(self.tablePayments.rowCount()):
+			self.tablePayments.removeRow(0)
+		for index, payment in enumerate(self.payments):
+			self.tablePayments.insertRow(index)
+			if payment['isIncome']:
+				self.tablePayments.setItem(index, 0, QTableWidgetItem(f"+{str(payment['price'])}"))
+			else:
+				self.tablePayments.setItem(index, 0, QTableWidgetItem(f"-{str(payment['price'])}"))
+			self.tablePayments.setItem(index, 1, QTableWidgetItem(payment['type']))
+			self.tablePayments.setItem(index, 2, QTableWidgetItem(payment['comment']))
+			self.tablePayments.setItem(index, 3, QTableWidgetItem(payment['date']))
 	
 	def setTypes(self, income=True):
 		types = self.db_controller.getTypes()
@@ -56,7 +70,6 @@ class Bookkepping(QMainWindow):
 		payment = self.payments[index]
 		self.tablePayments.removeRow(index)
 		self.db_controller.deletePayemnt(payment['id'])
-		print(self.db_controller.getPayments())
 
 	def changePaymentTypes(self):
 		if self.radioBtnIncome1.isChecked():
@@ -70,6 +83,16 @@ class Bookkepping(QMainWindow):
 		else:
 			self.total -= price
 		self.labelTotal.setText(f"Капитал: {self.total}$")
+
+	def sortPaymnets(self):
+		sortby = self.sortBy.currentText()
+		if sortby == "дате":
+			self.payments = sorted(self.payments, key=lambda x: x['date'])
+		elif sortby == 'сумме':
+			self.payments = sorted(self.payments, key=lambda x: x['price'])
+		elif sortby == 'категории':
+			self.payments = sorted(self.payments, key=lambda x: x['type'])
+		self.updatePayments()
 
 	def addData(self):
 		newPayment = {}
