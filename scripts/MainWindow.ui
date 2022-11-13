@@ -189,7 +189,7 @@
     <item row="2" column="2">
      <layout class="QHBoxLayout" name="horizontalLayout_3">
       <item>
-       <widget class="QPushButton" name="pushButton_3">
+       <widget class="QPushButton" name="btnImportPayments">
         <property name="text">
          <string>Импорт</string>
         </property>
@@ -207,21 +207,27 @@
     <item row="3" column="2">
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
-       <widget class="QPushButton" name="pushButton_2">
+       <widget class="QPushButton" name="btnExportPayments">
         <property name="text">
          <string>Экспорт</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QComboBox" name="comboBox_2"/>
+       <widget class="QComboBox" name="comboBox_2">
+        <item>
+         <property name="text">
+          <string>csv</string>
+         </property>
+        </item>
+       </widget>
       </item>
      </layout>
     </item>
     <item row="1" column="2">
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
-       <widget class="QPushButton" name="pushButton">
+       <widget class="QPushButton" name="btnChart">
         <property name="text">
          <string>Диаграмма</string>
         </property>
