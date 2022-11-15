@@ -16,6 +16,7 @@ class Bookkepping(QMainWindow):
 		uic.loadUi("MainWindow.ui", self)
 		self.nowDate = date.today()
 
+		self.radioBtnIncome1.setChecked(True)
 		self.paymentDate.setMaximumDate(QDate(self.nowDate.year, self.nowDate.month, self.nowDate.day))
 		self.paymentDate.setDate(QDate(self.nowDate.year, self.nowDate.month, self.nowDate.day))
 		self.btnImportPayments.clicked.connect(self.importPayments)
@@ -24,10 +25,10 @@ class Bookkepping(QMainWindow):
 		self.btnAddData.clicked.connect(self.addData)
 		self.btnAddType.clicked.connect(self.addType)
 		self.btnDeletePayment.clicked.connect(self.deletePayment)
+		self.btnDeleteType.clicked.connect(self.deleteType)
 		self.radioBtnIncome1.toggled.connect(self.changePaymentTypes)
 		self.radioBtnExpense1.toggled.connect(self.changePaymentTypes)
 		self.sortBy.currentIndexChanged.connect(self.sortPaymnets)
-		self.radioBtnIncome1.setChecked(True)
 
 		self.user_data = self.db_controller.getUser()
 		self.payments = []
@@ -63,8 +64,11 @@ class Bookkepping(QMainWindow):
 		types = self.db_controller.getTypes()
 		key = 'incomeTypes' if income else 'expenseTypes'
 		self.paymentType.clear()
+		self.deleteTypes.clear()
 		for name in types[key]:
 			self.paymentType.addItem(name[0]) 
+		for name in types['incomeTypes'] + types['expenseTypes']:
+			self.deleteTypes.addItem(name[0])
 
 	def deletePayment(self):
 		index = self.indexPayment.value() - 1
@@ -125,11 +129,24 @@ class Bookkepping(QMainWindow):
 
 	def addType(self):
 		name = self.typeName.text().lower()
-		isIncome = True if self.radioBtnIncome2.isChecked() else False
-		if isIncome == self.radioBtnIncome1.isChecked():
-			self.paymentType.addItem(name)
-		self.db_controller.addType(name, isIncome)
-		self.typeName.clear()
+		if (not self.radioBtnIncome2.isChecked()) and (not self.radioBtnExpense2.isChecked()):
+			self.errorMsg("Ошибка ввода", "Не выбран доход | расход")
+		elif name == "":
+			self.errorMsg("Ошибка ввода", "Не заполнено поле названия")
+		else:
+			isIncome = True if self.radioBtnIncome2.isChecked() else False
+			if isIncome == self.radioBtnIncome1.isChecked():
+				self.paymentType.addItem(name)
+			self.deleteTypes.addItem(name)
+			self.db_controller.addType(name, isIncome)
+			self.typeName.clear()
+	
+	def deleteType(self):
+		result = QMessageBox.question(self, 'MessageBox', "Вы уверены, что хотите удалить эту категорию", QMessageBox.Yes | QMessageBox.No)
+		if result == QMessageBox.Yes:
+			name = self.deleteTypes.currentText()
+			self.db_controller.deleteTypes(name)
+			self.setTypes(self.radioBtnIncome1.isChecked())
 
 	def errorMsg(self, title, error_msg):
 		msg = QMessageBox()
@@ -176,24 +193,27 @@ class Bookkepping(QMainWindow):
 	
 	def importPayments(self):
 		fname = QFileDialog.getOpenFileName(self, 'Выбрать файл', '')[0]
-		with open(fname, 'r') as csvfile:
-			reader = csv.reader(csvfile, delimiter=';', quotechar='"')
-			for index, row in enumerate(reader):
-				newPayment = {
-					"isIncome": True if int(row[1]) > 0 else False,
-					"price": int(row[1]),
-					"type": row[0],
-					"date": row[2],
-					"comment": row[3]
-				}
-				if self.paymentValidator(newPayment):
-					self.db_controller.addPayment(newPayment)
-					self.addPaymentInTable(0, newPayment)
-					self.paymentValue.clear()
-					self.paymentComment.clear()
-				self.updateTotal(newPayment['price'])
-		self.payments = self.db_controller.getPayments()
-		self.updatePayments(self.payments)
+		if str(fname[-3:]) == "csv":
+			with open(fname, 'r') as csvfile:
+				reader = csv.reader(csvfile, delimiter=';', quotechar='"')
+				for row in reader:
+					newPayment = {
+						"isIncome": True if int(row[1]) > 0 else False,
+						"price": int(row[1]),
+						"type": row[0],
+						"date": row[2],
+						"comment": row[3]
+					}
+					if self.paymentValidator(newPayment):
+						self.db_controller.addPayment(newPayment)
+						self.addPaymentInTable(0, newPayment)
+						self.paymentValue.clear()
+						self.paymentComment.clear()
+					self.updateTotal(newPayment['price'])
+			self.payments = self.db_controller.getPayments()
+			self.updatePayments(self.payments)
+		else:
+			self.errorMsg("Неверный файл", "Дурочок, ты не тот файл открыл!")
 
 
 class DB_Controller():
@@ -209,11 +229,6 @@ class DB_Controller():
 	def getUser(self):
 		data = self.cursor.execute(f"SELECT DISTINCT * FROM users WHERE login=?", (self.login, )).fetchall()
 		return data[0]
-	
-	def getTypes(self):
-		incomes = self.cursor.execute("""SELECT name FROM types WHERE isIncome=1""").fetchall()
-		expenses = self.cursor.execute("""SELECT name FROM types WHERE isIncome=0""").fetchall()
-		return {"incomeTypes": incomes, "expenseTypes": expenses}
 
 	def getPayments(self):
 		dbdata = self.cursor.execute("""SELECT id, price, isIncome, type, comment, date FROM payments WHERE user=?""", (self.login, )).fetchall()
@@ -235,6 +250,15 @@ class DB_Controller():
 
 	def addType(self, name, isIncome):
 		self.cursor.execute("""INSERT INTO types(isIncome, name) VALUES(?, ?)""", (isIncome, name, ))
+		self.connection.commit()
+
+	def getTypes(self):
+		incomes = self.cursor.execute("""SELECT name FROM types WHERE isIncome=1""").fetchall()
+		expenses = self.cursor.execute("""SELECT name FROM types WHERE isIncome=0""").fetchall()
+		return {"incomeTypes": incomes, "expenseTypes": expenses}
+
+	def deleteTypes(self, name):
+		self.cursor.execute("""DELETE FROM types WHERE name=?""", (name, ))
 		self.connection.commit()
 
 
