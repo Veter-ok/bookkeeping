@@ -13,6 +13,7 @@ class Bookkepping(QMainWindow):
 	def __init__(self):
 		super().__init__()
 		self.db_controller = DB_Controller('lrd_yandex')
+		self.utils = Utils()
 		uic.loadUi("MainWindow.ui", self)
 		self.nowDate = date.today()
 
@@ -35,6 +36,7 @@ class Bookkepping(QMainWindow):
 		self.total = 0
 		self.setPayments()
 		self.setTypes()
+		print(self.utils.collectionYearsData(self.payments))
 
 	def setPayments(self):
 		new_payments = self.db_controller.getPayments()
@@ -71,11 +73,14 @@ class Bookkepping(QMainWindow):
 			self.deleteTypes.addItem(name[0])
 
 	def deletePayment(self):
-		index = self.indexPayment.value() - 1
-		payment = self.payments[index]
-		self.payments.remove(payment)
-		self.tablePayments.removeRow(index)
-		self.db_controller.deletePayemnt(payment['id'])
+		msg = f"Вы уверены, что хотите удалить платёж "
+		result = QMessageBox.question(self, 'MessageBox', msg, QMessageBox.Yes | QMessageBox.No)
+		if result == QMessageBox.Yes:
+			index = self.indexPayment.value() - 1
+			payment = self.payments[index]
+			self.payments.remove(payment)
+			self.tablePayments.removeRow(index)
+			self.db_controller.deletePayemnt(payment['id'])
 
 	def changePaymentTypes(self):
 		if self.radioBtnIncome1.isChecked():
@@ -104,7 +109,13 @@ class Bookkepping(QMainWindow):
 		newPayment['type'] = self.paymentType.currentText()
 		newPayment['date'] = str(self.paymentDate.date().toPyDate())
 		newPayment['comment'] = str(self.paymentComment.text())
-		self.payments.append({'price': newPayment['price'], 'isIncome': newPayment['isIncome'], 'type': newPayment['type'], 'comment': newPayment['comment'], 'date': newPayment['date']})
+		self.payments.append({
+			'price': newPayment['price'], 
+			'isIncome': newPayment['isIncome'], 
+			'type': newPayment['type'], 
+			'comment': newPayment['comment'], 
+			'date': newPayment['date']
+		})
 		self.updateTotal(newPayment['price'])
 		if self.paymentValidator(newPayment):
 			self.db_controller.addPayment(newPayment)
@@ -142,7 +153,8 @@ class Bookkepping(QMainWindow):
 			self.typeName.clear()
 	
 	def deleteType(self):
-		result = QMessageBox.question(self, 'MessageBox', "Вы уверены, что хотите удалить эту категорию", QMessageBox.Yes | QMessageBox.No)
+		msg = "Вы уверены, что хотите удалить эту категорию"
+		result = QMessageBox.question(self, 'MessageBox', msg, QMessageBox.Yes | QMessageBox.No)
 		if result == QMessageBox.Yes:
 			name = self.deleteTypes.currentText()
 			self.db_controller.deleteTypes(name)
@@ -152,36 +164,44 @@ class Bookkepping(QMainWindow):
 		msg = QMessageBox()
 		msg.setWindowTitle(title)
 		msg.setText(error_msg)
-		msg.setIcon(QMessageBox.Warning)
+		msg.setIcon(QMessageBox.Critical)
 		msg.exec_()
 	
+	def askMsg(self, title, error_msg):
+		msg = QMessageBox()
+		msg.setWindowTitle(title)
+		msg.setText(error_msg)
+		msg.setIcon(QMessageBox.Warning)
+		msg.exec_() 
+	
 	def showChart(self):
-		months = ['январь','февраль','март','апрель','март','июнь','июль','август','сетябрь','октябрь','ноябрь','декабрь']
-		incomes, expenses = self.collectionMonthsData()
-		plt.style.use("fivethirtyeight")
-		br = numpy.arange(len(months))
-		plt.bar(br - 0.25, incomes, width=0.25, color="#84ED2D", label="Доходы")
-		plt.bar(br, expenses, width=0.25, color="#F74056", label="Расходы")
-		plt.legend()
-		plt.gcf().autofmt_xdate()
-		plt.xlabel("месяца")
-		plt.ylabel("доходы и расходы")
-		plt.xticks(ticks=br, labels=months)
-		plt.tight_layout()
+		chartType = self.chartsTypes.currentText()
+		if chartType == "за год":
+			MONTHS = ['январь','февраль','март','апрель','март','июнь','июль','август','сетябрь','октябрь','ноябрь','декабрь']
+			incomes, expenses = self.utils.collectionMonthsData(self.payments)
+			plt.style.use("fivethirtyeight")
+			br = numpy.arange(len(MONTHS))
+			plt.bar(br - 0.25, incomes, width=0.25, color="#84ED2D", label="Доходы")
+			plt.bar(br, expenses, width=0.25, color="#F74056", label="Расходы")
+			plt.legend()
+			plt.gcf().autofmt_xdate()
+			plt.xlabel("месяца")
+			plt.ylabel("доходы и расходы")
+			plt.xticks(ticks=br, labels=MONTHS)
+			plt.tight_layout()
+		if chartType == "за всё время":
+			keys, incomes, expenses = self.utils.collectionYearsData(self.payments)
+			plt.style.use("fivethirtyeight")
+			br = numpy.arange(len(keys))
+			plt.bar(br - 0.25, incomes, width=0.25, color="#84ED2D", label="Доходы")
+			plt.bar(br, expenses, width=0.25, color="#F74056", label="Расходы")
+			plt.legend()
+			plt.gcf().autofmt_xdate()
+			plt.xlabel("месяца")
+			plt.ylabel("доходы и расходы")
+			plt.xticks(ticks=br, labels=keys)
+			plt.tight_layout()
 		plt.show()
-
-	def collectionMonthsData(self):
-		now_year = date.today().year
-		incomes = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-		expenses = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-		for payment in self.payments:
-			payment_data = date.fromisoformat(payment['date'])
-			if payment_data.year == now_year:
-				if payment['price'] > 0:
-					incomes[payment_data.month - 1] += payment['price']
-				else:
-					expenses[payment_data.month - 1] += abs(payment['price'])
-		return incomes, expenses
 
 	def exportPayments(self):
 		with open('payments.csv', 'w') as csvfile:
@@ -216,6 +236,39 @@ class Bookkepping(QMainWindow):
 			self.errorMsg("Неверный файл", "Дурочок, ты не тот файл открыл!")
 
 
+class Utils():
+	def collectionMonthsData(self, payments):
+		now_year = date.today().year
+		incomes = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+		expenses = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+		for payment in payments:
+			payment_date = date.fromisoformat(payment['date'])
+			if payment_date.year == now_year:
+				if payment['price'] > 0:
+					incomes[payment_date.month - 1] += payment['price']
+				else:
+					expenses[payment_date.month - 1] += abs(payment['price'])
+		return incomes, expenses
+
+	def collectionYearsData(self, payments):
+		payments = sorted(payments, key=lambda x: date.fromisoformat(x['date']))
+		keys = []
+		incomes = []
+		expenses = []
+		for payment in payments:
+			payment_date = date.fromisoformat(payment['date'])
+			if payment_date.year not in keys:
+				keys.append(payment_date.year)
+				incomes.append(0)
+				expenses.append(0)
+			index = keys.index(payment_date.year)
+			if payment['price'] > 0:
+				incomes[index] += payment['price']
+			else:
+				expenses[index] += abs(payment['price'])
+		return keys, incomes, expenses
+
+
 class DB_Controller():
 	def __init__(self, login):
 		self.connection = sqlite3.connect("bookkeppingDB.db")
@@ -236,7 +289,14 @@ class DB_Controller():
 		for payment in dbdata:
 			payment = list(payment)
 			price = payment[1] if payment[2] else -payment[1]
-			data.append({'id': payment[0], 'price': price, 'isIncome': payment[2], 'type': payment[3], 'comment': payment[4], 'date': payment[5]})
+			data.append({
+				'id': payment[0], 
+				'price': price, 
+				'isIncome': payment[2], 
+				'type': payment[3], 
+				'comment': payment[4], 
+				'date': payment[5]
+			})
 		return data
 
 	def addPayment(self, payment):

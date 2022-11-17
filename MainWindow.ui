@@ -244,7 +244,23 @@
        </widget>
       </item>
       <item>
-       <widget class="QComboBox" name="comboBox"/>
+       <widget class="QComboBox" name="chartsTypes">
+        <item>
+         <property name="text">
+          <string>за всё время</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>за год</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>за месяц</string>
+         </property>
+        </item>
+       </widget>
       </item>
      </layout>
     </item>
