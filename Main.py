@@ -274,7 +274,6 @@ class DB_Controller():
 		self.connection = sqlite3.connect("bookkeppingDB.db")
 		self.login = login
 		self.cursor = self.connection.cursor()
-		self._addUser()
 
 	def _addUser(self):
 		self.cursor.execute("""INSERT INTO users(login, name) VALUES("lrd_yandex", "Родион")""")
