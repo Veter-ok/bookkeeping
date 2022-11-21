@@ -12,7 +12,7 @@ from PyQt5.QtCore import QDate
 class Bookkepping(QMainWindow):
 	def __init__(self):
 		super().__init__()
-		self.db_controller = DB_Controller('lrd_yandex')
+		self.db_controller = DB_Controller('name_login')
 		self.utils = Utils()
 		uic.loadUi("MainWindow.ui", self)
 		self.nowDate = date.today()
@@ -36,7 +36,6 @@ class Bookkepping(QMainWindow):
 		self.total = 0
 		self.setPayments()
 		self.setTypes()
-		print(self.utils.collectionYearsData(self.payments))
 
 	def setPayments(self):
 		new_payments = self.db_controller.getPayments()
@@ -179,29 +178,26 @@ class Bookkepping(QMainWindow):
 		if chartType == "за год":
 			MONTHS = ['январь','февраль','март','апрель','март','июнь','июль','август','сетябрь','октябрь','ноябрь','декабрь']
 			incomes, expenses = self.utils.collectionMonthsData(self.payments)
-			plt.style.use("fivethirtyeight")
 			br = numpy.arange(len(MONTHS))
-			plt.bar(br - 0.25, incomes, width=0.25, color="#84ED2D", label="Доходы")
-			plt.bar(br, expenses, width=0.25, color="#F74056", label="Расходы")
-			plt.legend()
-			plt.gcf().autofmt_xdate()
-			plt.xlabel("месяца")
-			plt.ylabel("доходы и расходы")
-			plt.xticks(ticks=br, labels=MONTHS)
-			plt.tight_layout()
-		if chartType == "за всё время":
+			chart = CreateChart()
+			chart.addData(br, incomes, expenses)
+			chart.addLabels("месяца", "доходы и расходы")
+			chart.addXTicks(br, MONTHS)
+		elif chartType == "за всё время":
 			keys, incomes, expenses = self.utils.collectionYearsData(self.payments)
-			plt.style.use("fivethirtyeight")
 			br = numpy.arange(len(keys))
-			plt.bar(br - 0.25, incomes, width=0.25, color="#84ED2D", label="Доходы")
-			plt.bar(br, expenses, width=0.25, color="#F74056", label="Расходы")
-			plt.legend()
-			plt.gcf().autofmt_xdate()
-			plt.xlabel("месяца")
-			plt.ylabel("доходы и расходы")
-			plt.xticks(ticks=br, labels=keys)
-			plt.tight_layout()
-		plt.show()
+			chart = CreateChart()
+			chart.addData(br, incomes, expenses)
+			chart.addLabels("год", "доходы и расходы")
+			chart.addXTicks(br, keys)
+		else:
+			chart = CreateChart()
+			keys, incomes, expenses = self.utils.collectionMonthData(date.today().month, self.payments)
+			br = numpy.arange(len(keys))
+			chart.addData(br, incomes, expenses)
+			chart.addLabels("дни", "доходы и расходы")
+			chart.addXTicks(br, keys)
+		chart.show()
 
 	def exportPayments(self):
 		with open('payments.csv', 'w') as csvfile:
@@ -236,6 +232,29 @@ class Bookkepping(QMainWindow):
 			self.errorMsg("Неверный файл", "Дурочок, ты не тот файл открыл!")
 
 
+class CreateChart():
+	def __init__(self):
+		plt.style.use("fivethirtyeight")
+		plt.legend()
+
+	def addData(self, br, data1, data2):
+		plt.bar(br - 0.25, data1, width=0.25, color="#84ED2D", label="Доходы")
+		plt.bar(br, data2, width=0.25, color="#F74056", label="Расходы")
+
+	def addLabels(self, xlabel, ylabel):
+		plt.legend()
+		plt.gcf().autofmt_xdate()
+		plt.xlabel(xlabel)
+		plt.ylabel(ylabel)
+
+	def addXTicks(self, br, months):
+		plt.xticks(ticks=br, labels=months)
+
+	def show(self):
+		plt.tight_layout()
+		plt.show()
+
+
 class Utils():
 	def collectionMonthsData(self, payments):
 		now_year = date.today().year
@@ -268,19 +287,68 @@ class Utils():
 				expenses[index] += abs(payment['price'])
 		return keys, incomes, expenses
 
+	def collectionMonthData(self, month, payments):
+		payments = sorted(payments, key=lambda x: date.fromisoformat(x['date']))
+		keys = []
+		incomes = []
+		expenses = []
+		for payment in payments:
+			payment_date = date.fromisoformat(payment['date'])
+			if payment_date.day not in keys and payment_date.month == month:
+				keys.append(payment_date.day)
+				incomes.append(0)
+				expenses.append(0)
+			if payment_date.month == month:
+				index = keys.index(payment_date.day)
+				if payment['price'] > 0:
+					incomes[index] += payment['price']
+				else:
+					expenses[index] += abs(payment['price'])
+		return keys, incomes, expenses
+
 
 class DB_Controller():
 	def __init__(self, login):
 		self.connection = sqlite3.connect("bookkeppingDB.db")
 		self.login = login
 		self.cursor = self.connection.cursor()
+		self.__createTables()
+		self._addUser()
+	
+	def __createTables(self):
+		self.cursor.execute("""CREATE TABLE IF NOT EXISTS "users" (
+								"name"	TEXT,
+								"login"	TEXT UNIQUE
+							);""")
+		self.cursor.execute("""CREATE TABLE IF NOT EXISTS "payments" (
+								"id"	INTEGER NOT NULL UNIQUE,
+								"user"	INTEGER NOT NULL,
+								"price"	INTEGER NOT NULL,
+								"isIncome"	BLOB NOT NULL,
+								"type"	INTEGER NOT NULL,
+								"comment"	TEXT NOT NULL,
+								"date"	TEXT NOT NULL,
+								PRIMARY KEY("id" AUTOINCREMENT)
+							);""")
+		self.cursor.execute("""CREATE TABLE IF NOT EXISTS "types" (
+								"id"	INTEGER NOT NULL UNIQUE,
+								"name"	TEXT UNIQUE,
+								"isIncome"	BLOB,
+								PRIMARY KEY("id" AUTOINCREMENT)
+							);""")
+		self.connection.commit()
 
 	def _addUser(self):
-		self.cursor.execute("""INSERT INTO users(login, name) VALUES("lrd_yandex", "Родион")""")
-		self.connection.commit()
+		try:
+			self.cursor.execute("""INSERT INTO users(login, name) VALUES("name_login", "Name")""")
+			self.connection.commit()
+		except sqlite3.IntegrityError:
+			pass
 
 	def getUser(self):
 		data = self.cursor.execute(f"SELECT DISTINCT * FROM users WHERE login=?", (self.login, )).fetchall()
+		if len(data) == 0:
+			return False
 		return data[0]
 
 	def getPayments(self):
