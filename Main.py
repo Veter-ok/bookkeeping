@@ -12,14 +12,19 @@ from PyQt5.QtCore import QDate
 class Bookkepping(QMainWindow):
 	def __init__(self):
 		super().__init__()
-		self.db_controller = DB_Controller('name_login')
+		self.db_controller = DB_Controller()
+		self.currently_user = ""
 		self.utils = Utils()
 		uic.loadUi("MainWindow.ui", self)
 		self.nowDate = date.today()
+		self.payments = []
+		self.total = 0
 
+		self.userForm = UserFormWindow(self)
 		self.radioBtnIncome1.setChecked(True)
 		self.paymentDate.setMaximumDate(QDate(self.nowDate.year, self.nowDate.month, self.nowDate.day))
 		self.paymentDate.setDate(QDate(self.nowDate.year, self.nowDate.month, self.nowDate.day))
+		self.btnAddUser.clicked.connect(self.openUserFormWindow)
 		self.btnImportPayments.clicked.connect(self.importPayments)
 		self.btnExportPayments.clicked.connect(self.exportPayments)
 		self.btnChart.clicked.connect(self.showChart)
@@ -30,12 +35,32 @@ class Bookkepping(QMainWindow):
 		self.radioBtnIncome1.toggled.connect(self.changePaymentTypes)
 		self.radioBtnExpense1.toggled.connect(self.changePaymentTypes)
 		self.sortBy.currentIndexChanged.connect(self.sortPaymnets)
+		self.selectAllUsers()
+		self.selectUser()
+		self.choseUsers.currentIndexChanged.connect(self.selectUser)
 
-		self.user_data = self.db_controller.getUser()
-		self.payments = []
-		self.total = 0
+	def selectUser(self):
+		name, login = self.choseUsers.currentText().split()
+		login = login[1:-1]
+		self.db_controller.setUser(login)
+		self.currently_user = login
+		for _ in range(self.tablePayments.rowCount()):
+			self.tablePayments.removeRow(0)
 		self.setPayments()
 		self.setTypes()
+
+	def selectAllUsers(self):
+		users = self.db_controller.getAllUsers()
+		for user in users:
+			self.choseUsers.addItem(f"{user[0]} ({user[1]})")
+
+	def openUserFormWindow(self):
+		self.userForm.show()
+
+	def addUser(self, user, login):
+		status = self.db_controller.addUser(login, user)
+		if status != "error":
+			self.choseUsers.addItem(f"{user} ({login})")
 
 	def setPayments(self):
 		new_payments = self.db_controller.getPayments()
@@ -232,10 +257,23 @@ class Bookkepping(QMainWindow):
 			self.errorMsg("Неверный файл", "Дурочок, ты не тот файл открыл!")
 
 
+class UserFormWindow(QMainWindow):
+	def __init__(self, root):
+		super().__init__(root)
+		self.main = root
+		uic.loadUi("UserFrom.ui", self)
+		self.btnAddUser.clicked.connect(self.addUser)
+
+	def addUser(self):
+		name = self.nameInput.text()
+		login = self.loginInput.text()
+		self.main.addUser(name, login)
+		self.close()
+
+
 class CreateChart():
 	def __init__(self):
 		plt.style.use("fivethirtyeight")
-		plt.legend()
 
 	def addData(self, br, data1, data2):
 		plt.bar(br - 0.25, data1, width=0.25, color="#84ED2D", label="Доходы")
@@ -308,12 +346,11 @@ class Utils():
 
 
 class DB_Controller():
-	def __init__(self, login):
+	def __init__(self):
 		self.connection = sqlite3.connect("bookkeppingDB.db")
-		self.login = login
 		self.cursor = self.connection.cursor()
 		self.__createTables()
-		self._addUser()
+		#self._addUser("name_login", "Name")
 	
 	def __createTables(self):
 		self.cursor.execute("""CREATE TABLE IF NOT EXISTS "users" (
@@ -332,18 +369,29 @@ class DB_Controller():
 							);""")
 		self.cursor.execute("""CREATE TABLE IF NOT EXISTS "types" (
 								"id"	INTEGER NOT NULL UNIQUE,
-								"name"	TEXT UNIQUE,
-								"isIncome"	BLOB,
+								"user"	TEXT NOT NULL,
+								"name"	TEXT NOT NULL UNIQUE,
+								"isIncome"	BLOB NOT NULL,
 								PRIMARY KEY("id" AUTOINCREMENT)
 							);""")
 		self.connection.commit()
 
-	def _addUser(self):
+	def addUser(self, login, name):
 		try:
-			self.cursor.execute("""INSERT INTO users(login, name) VALUES("name_login", "Name")""")
+			self.cursor.execute("INSERT INTO users(login, name) VALUES(?, ?)", (login, name, ))
 			self.connection.commit()
 		except sqlite3.IntegrityError:
-			pass
+			return "error"
+
+	def setUser(self, login):
+		self.login = login
+	
+	def getAllUsers(self):
+		data = self.cursor.execute("""SELECT * from users""").fetchall()
+		new_data = []
+		for i in data:
+			new_data.append([i[0], i[1]])
+		return new_data
 
 	def getUser(self):
 		data = self.cursor.execute(f"SELECT DISTINCT * FROM users WHERE login=?", (self.login, )).fetchall()
@@ -377,12 +425,12 @@ class DB_Controller():
 		self.connection.commit()
 
 	def addType(self, name, isIncome):
-		self.cursor.execute("""INSERT INTO types(isIncome, name) VALUES(?, ?)""", (isIncome, name, ))
+		self.cursor.execute("""INSERT INTO types(user, isIncome, name) VALUES(?, ?, ?)""", (self.login, isIncome, name, ))
 		self.connection.commit()
 
 	def getTypes(self):
-		incomes = self.cursor.execute("""SELECT name FROM types WHERE isIncome=1""").fetchall()
-		expenses = self.cursor.execute("""SELECT name FROM types WHERE isIncome=0""").fetchall()
+		incomes = self.cursor.execute("SELECT name FROM types WHERE user=? AND isIncome=1", (self.login, )).fetchall()
+		expenses = self.cursor.execute("SELECT name FROM types WHERE user=? AND isIncome=0", (self.login, )).fetchall()
 		return {"incomeTypes": incomes, "expenseTypes": expenses}
 
 	def deleteTypes(self, name):

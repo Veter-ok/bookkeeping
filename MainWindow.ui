@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>941</width>
-    <height>763</height>
+    <width>939</width>
+    <height>794</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -191,6 +191,30 @@
       </layout>
      </widget>
     </item>
+    <item row="8" column="2">
+     <widget class="QGroupBox" name="groupBox_3">
+      <property name="font">
+       <font>
+        <pointsize>14</pointsize>
+       </font>
+      </property>
+      <property name="title">
+       <string>Удалить категорию</string>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <item>
+        <widget class="QComboBox" name="deleteTypes"/>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnDeleteType">
+         <property name="text">
+          <string>Удалить</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
     <item row="2" column="2">
      <layout class="QHBoxLayout" name="horizontalLayout_3">
       <item>
@@ -264,46 +288,16 @@
       </item>
      </layout>
     </item>
-    <item row="1" column="0" rowspan="9" colspan="2">
+    <item row="0" column="2">
+     <widget class="QPushButton" name="btnAddUser">
+      <property name="text">
+       <string>Добавить пользователя</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0" rowspan="10" colspan="2">
      <layout class="QGridLayout" name="gridLayout_4">
-      <item row="0" column="2">
-       <widget class="QComboBox" name="sortBy">
-        <item>
-         <property name="text">
-          <string>дате</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>сумме</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>категории</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QLabel" name="label_5">
-        <property name="maximumSize">
-         <size>
-          <width>150</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>14</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string> Сортировка по...</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1" colspan="2">
+      <item row="2" column="1" colspan="2">
        <widget class="QTableWidget" name="tablePayments">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
@@ -368,31 +362,54 @@
         </column>
        </widget>
       </item>
-     </layout>
-    </item>
-    <item row="8" column="2">
-     <widget class="QGroupBox" name="groupBox_3">
-      <property name="font">
-       <font>
-        <pointsize>14</pointsize>
-       </font>
-      </property>
-      <property name="title">
-       <string>Удалить категорию</string>
-      </property>
-      <layout class="QHBoxLayout" name="horizontalLayout_5">
-       <item>
-        <widget class="QComboBox" name="deleteTypes"/>
-       </item>
-       <item>
-        <widget class="QPushButton" name="btnDeleteType">
+      <item row="1" column="2">
+       <widget class="QComboBox" name="sortBy">
+        <item>
          <property name="text">
-          <string>Удалить</string>
+          <string>дате</string>
          </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
+        </item>
+        <item>
+         <property name="text">
+          <string>сумме</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>категории</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLabel" name="label_5">
+        <property name="maximumSize">
+         <size>
+          <width>150</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>14</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string> Сортировка по...</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QComboBox" name="choseUsers"/>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLabel" name="label_6">
+        <property name="text">
+         <string>Выбрать пользователя</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
    </layout>
   </widget>
@@ -401,7 +418,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>941</width>
+     <width>939</width>
      <height>24</height>
     </rect>
    </property>
