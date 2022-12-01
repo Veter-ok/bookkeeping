@@ -54,6 +54,7 @@ class Bookkepping(QMainWindow):
 			self.currently_user = login
 			for _ in range(self.tablePayments.rowCount()):
 				self.tablePayments.removeRow(0)
+			self.total = 0
 			self.labelTotal.setText(f"Капитал: 0$")
 			self.setPayments()
 			self.setTypes()
@@ -75,7 +76,7 @@ class Bookkepping(QMainWindow):
 		new_payments = self.db_controller.getPayments()
 		for index, payment in enumerate(new_payments):
 			self.addPaymentInTable(index, payment)
-			self.updateTotal(payment['price'])
+			self.updateTotal(payment['price'], payment['isIncome'])
 			self.payments.append(payment)
 		self.labelTotal.setText(f"Капитал: {self.total}$")
 
@@ -123,8 +124,11 @@ class Bookkepping(QMainWindow):
 		elif self.radioBtnExpense1.isChecked():
 			self.setTypes(False)
 
-	def updateTotal(self, price):
-		self.total += price
+	def updateTotal(self, price, isIncome):
+		if isIncome:
+			self.total += price
+		else:
+			self.total -= price
 		self.labelTotal.setText(f"Капитал: {self.total}$")
 
 	def sortPaymnets(self):
@@ -152,7 +156,7 @@ class Bookkepping(QMainWindow):
 				'comment': newPayment['comment'], 
 				'date': newPayment['date']
 			})
-			self.updateTotal(newPayment['price'])
+			self.updateTotal(newPayment['price'], newPayment['isIncome'])
 			if self.paymentValidator(newPayment):
 				self.db_controller.addPayment(newPayment)
 				self.addPaymentInTable(0, newPayment)
@@ -264,7 +268,7 @@ class Bookkepping(QMainWindow):
 						self.addPaymentInTable(0, newPayment)
 						self.paymentValue.clear()
 						self.paymentComment.clear()
-					self.updateTotal(newPayment['price'])
+					self.updateTotal(newPayment['price'], newPayment['isIncome'])
 			self.payments = self.db_controller.getPayments()
 			self.updatePayments(self.payments)
 		else:
