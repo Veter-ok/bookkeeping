@@ -40,14 +40,17 @@ class Bookkepping(QMainWindow):
 		self.choseUsers.currentIndexChanged.connect(self.selectUser)
 
 	def selectUser(self):
-		name, login = self.choseUsers.currentText().split()
-		login = login[1:-1]
-		self.db_controller.setUser(login)
-		self.currently_user = login
-		for _ in range(self.tablePayments.rowCount()):
-			self.tablePayments.removeRow(0)
-		self.setPayments()
-		self.setTypes()
+		if self.choseUsers.currentText() != "":
+			name, login = self.choseUsers.currentText().split()
+			login = login[1:-1]
+			self.db_controller.setUser(login)
+			self.currently_user = login
+			for _ in range(self.tablePayments.rowCount()):
+				self.tablePayments.removeRow(0)
+			self.setPayments()
+			self.setTypes()
+		else:
+			self.openUserFormWindow()
 
 	def selectAllUsers(self):
 		users = self.db_controller.getAllUsers()
@@ -350,7 +353,6 @@ class DB_Controller():
 		self.connection = sqlite3.connect("bookkeppingDB.db")
 		self.cursor = self.connection.cursor()
 		self.__createTables()
-		#self._addUser("name_login", "Name")
 	
 	def __createTables(self):
 		self.cursor.execute("""CREATE TABLE IF NOT EXISTS "users" (
