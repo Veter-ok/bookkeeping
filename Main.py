@@ -39,8 +39,15 @@ class Bookkepping(QMainWindow):
 		self.selectUser()
 		self.choseUsers.currentIndexChanged.connect(self.selectUser)
 
+	def thereIsUser(self, msg=True):
+		if self.choseUsers.currentText() == "":
+			if msg:
+				self.errorMsg("Ошибка", "Добавьте пользователя")
+			return False
+		return True
+
 	def selectUser(self):
-		if self.choseUsers.currentText() != "":
+		if self.thereIsUser(msg=False):
 			name, login = self.choseUsers.currentText().split()
 			login = login[1:-1]
 			self.db_controller.setUser(login)
@@ -49,8 +56,6 @@ class Bookkepping(QMainWindow):
 				self.tablePayments.removeRow(0)
 			self.setPayments()
 			self.setTypes()
-		else:
-			self.openUserFormWindow()
 
 	def selectAllUsers(self):
 		users = self.db_controller.getAllUsers()
@@ -80,14 +85,15 @@ class Bookkepping(QMainWindow):
 			self.addPaymentInTable(index, payment)
 	
 	def addPaymentInTable(self, index, payment):
-		self.tablePayments.insertRow(index)
-		if payment['isIncome']:
-			self.tablePayments.setItem(index, 0, QTableWidgetItem(f"+{str(payment['price'])}"))
-		else:
-			self.tablePayments.setItem(index, 0, QTableWidgetItem(str(payment['price'])))
-		self.tablePayments.setItem(index, 1, QTableWidgetItem(payment['type']))
-		self.tablePayments.setItem(index, 2, QTableWidgetItem(payment['comment']))
-		self.tablePayments.setItem(index, 3, QTableWidgetItem(payment['date']))
+		if self.thereIsUser():
+			self.tablePayments.insertRow(index)
+			if payment['isIncome']:
+				self.tablePayments.setItem(index, 0, QTableWidgetItem(f"+{str(payment['price'])}"))
+			else:
+				self.tablePayments.setItem(index, 0, QTableWidgetItem(str(payment['price'])))
+			self.tablePayments.setItem(index, 1, QTableWidgetItem(payment['type']))
+			self.tablePayments.setItem(index, 2, QTableWidgetItem(payment['comment']))
+			self.tablePayments.setItem(index, 3, QTableWidgetItem(payment['date']))
 	
 	def setTypes(self, income=True):
 		types = self.db_controller.getTypes()
@@ -100,14 +106,15 @@ class Bookkepping(QMainWindow):
 			self.deleteTypes.addItem(name[0])
 
 	def deletePayment(self):
-		msg = f"Вы уверены, что хотите удалить платёж "
-		result = QMessageBox.question(self, 'MessageBox', msg, QMessageBox.Yes | QMessageBox.No)
-		if result == QMessageBox.Yes:
-			index = self.indexPayment.value() - 1
-			payment = self.payments[index]
-			self.payments.remove(payment)
-			self.tablePayments.removeRow(index)
-			self.db_controller.deletePayemnt(payment['id'])
+		if self.thereIsUser():
+			msg = f"Вы уверены, что хотите удалить платёж "
+			result = QMessageBox.question(self, 'MessageBox', msg, QMessageBox.Yes | QMessageBox.No)
+			if result == QMessageBox.Yes:
+				index = self.indexPayment.value() - 1
+				payment = self.payments[index]
+				self.payments.remove(payment)
+				self.tablePayments.removeRow(index)
+				self.db_controller.deletePayemnt(payment['id'])
 
 	def changePaymentTypes(self):
 		if self.radioBtnIncome1.isChecked():
@@ -130,25 +137,26 @@ class Bookkepping(QMainWindow):
 		self.updatePayments(self.payments)
 
 	def addData(self):
-		newPayment = {}
-		newPayment['isIncome'] = self.radioBtnIncome1.isChecked()
-		newPayment['price'] = int(self.paymentValue.text()) if newPayment['isIncome'] else -int(self.paymentValue.text())
-		newPayment['type'] = self.paymentType.currentText()
-		newPayment['date'] = str(self.paymentDate.date().toPyDate())
-		newPayment['comment'] = str(self.paymentComment.text())
-		self.payments.append({
-			'price': newPayment['price'], 
-			'isIncome': newPayment['isIncome'], 
-			'type': newPayment['type'], 
-			'comment': newPayment['comment'], 
-			'date': newPayment['date']
-		})
-		self.updateTotal(newPayment['price'])
-		if self.paymentValidator(newPayment):
-			self.db_controller.addPayment(newPayment)
-			self.addPaymentInTable(0, newPayment)
-			self.paymentValue.clear()
-			self.paymentComment.clear()
+		if self.thereIsUser():
+			newPayment = {}
+			newPayment['isIncome'] = self.radioBtnIncome1.isChecked()
+			newPayment['price'] = int(self.paymentValue.text()) if newPayment['isIncome'] else -int(self.paymentValue.text())
+			newPayment['type'] = self.paymentType.currentText()
+			newPayment['date'] = str(self.paymentDate.date().toPyDate())
+			newPayment['comment'] = str(self.paymentComment.text())
+			self.payments.append({
+				'price': newPayment['price'], 
+				'isIncome': newPayment['isIncome'], 
+				'type': newPayment['type'], 
+				'comment': newPayment['comment'], 
+				'date': newPayment['date']
+			})
+			self.updateTotal(newPayment['price'])
+			if self.paymentValidator(newPayment):
+				self.db_controller.addPayment(newPayment)
+				self.addPaymentInTable(0, newPayment)
+				self.paymentValue.clear()
+				self.paymentComment.clear()
 	
 	def paymentValidator(self, payment):
 		if (not self.radioBtnIncome1.isChecked()) and (not self.radioBtnExpense1.isChecked()):
@@ -166,26 +174,28 @@ class Bookkepping(QMainWindow):
 		return True
 
 	def addType(self):
-		name = self.typeName.text().lower()
-		if (not self.radioBtnIncome2.isChecked()) and (not self.radioBtnExpense2.isChecked()):
-			self.errorMsg("Ошибка ввода", "Не выбран доход | расход")
-		elif name == "":
-			self.errorMsg("Ошибка ввода", "Не заполнено поле названия")
-		else:
-			isIncome = True if self.radioBtnIncome2.isChecked() else False
-			if isIncome == self.radioBtnIncome1.isChecked():
-				self.paymentType.addItem(name)
-			self.deleteTypes.addItem(name)
-			self.db_controller.addType(name, isIncome)
-			self.typeName.clear()
+		if self.thereIsUser():
+			name = self.typeName.text().lower()
+			if (not self.radioBtnIncome2.isChecked()) and (not self.radioBtnExpense2.isChecked()):
+				self.errorMsg("Ошибка ввода", "Не выбран доход | расход")
+			elif name == "":
+				self.errorMsg("Ошибка ввода", "Не заполнено поле названия")
+			else:
+				isIncome = True if self.radioBtnIncome2.isChecked() else False
+				if isIncome == self.radioBtnIncome1.isChecked():
+					self.paymentType.addItem(name)
+				self.deleteTypes.addItem(name)
+				self.db_controller.addType(name, isIncome)
+				self.typeName.clear()
 	
 	def deleteType(self):
-		msg = "Вы уверены, что хотите удалить эту категорию"
-		result = QMessageBox.question(self, 'MessageBox', msg, QMessageBox.Yes | QMessageBox.No)
-		if result == QMessageBox.Yes:
-			name = self.deleteTypes.currentText()
-			self.db_controller.deleteTypes(name)
-			self.setTypes(self.radioBtnIncome1.isChecked())
+		if self.thereIsUser():
+			msg = "Вы уверены, что хотите удалить эту категорию"
+			result = QMessageBox.question(self, 'MessageBox', msg, QMessageBox.Yes | QMessageBox.No)
+			if result == QMessageBox.Yes:
+				name = self.deleteTypes.currentText()
+				self.db_controller.deleteTypes(name)
+				self.setTypes(self.radioBtnIncome1.isChecked())
 
 	def errorMsg(self, title, error_msg):
 		msg = QMessageBox()
