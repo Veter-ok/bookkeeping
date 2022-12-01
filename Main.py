@@ -54,6 +54,7 @@ class Bookkepping(QMainWindow):
 			self.currently_user = login
 			for _ in range(self.tablePayments.rowCount()):
 				self.tablePayments.removeRow(0)
+			self.labelTotal.setText(f"Капитал: 0$")
 			self.setPayments()
 			self.setTypes()
 
@@ -90,7 +91,7 @@ class Bookkepping(QMainWindow):
 			if payment['isIncome']:
 				self.tablePayments.setItem(index, 0, QTableWidgetItem(f"+{str(payment['price'])}"))
 			else:
-				self.tablePayments.setItem(index, 0, QTableWidgetItem(str(payment['price'])))
+				self.tablePayments.setItem(index, 0, QTableWidgetItem(f"-{str(payment['price'])}"))
 			self.tablePayments.setItem(index, 1, QTableWidgetItem(payment['type']))
 			self.tablePayments.setItem(index, 2, QTableWidgetItem(payment['comment']))
 			self.tablePayments.setItem(index, 3, QTableWidgetItem(payment['date']))
@@ -382,7 +383,7 @@ class DB_Controller():
 		self.cursor.execute("""CREATE TABLE IF NOT EXISTS "types" (
 								"id"	INTEGER NOT NULL UNIQUE,
 								"user"	TEXT NOT NULL,
-								"name"	TEXT NOT NULL UNIQUE,
+								"name"	TEXT NOT NULL,
 								"isIncome"	BLOB NOT NULL,
 								PRIMARY KEY("id" AUTOINCREMENT)
 							);""")
