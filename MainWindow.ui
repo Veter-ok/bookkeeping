@@ -31,6 +31,9 @@
        </item>
        <item>
         <widget class="QPushButton" name="btnDeletePayment">
+         <property name="styleSheet">
+          <string notr="true">background-color: #FC6E50</string>
+         </property>
          <property name="text">
           <string>Удалить</string>
          </property>
@@ -107,6 +110,9 @@
        </item>
        <item row="6" column="0" colspan="2">
         <widget class="QPushButton" name="btnAddData">
+         <property name="styleSheet">
+          <string notr="true">background-color: DodgerBlue</string>
+         </property>
          <property name="text">
           <string>Добавить</string>
          </property>
@@ -176,6 +182,9 @@
        </item>
        <item row="3" column="0" colspan="2">
         <widget class="QPushButton" name="btnAddType">
+         <property name="styleSheet">
+          <string notr="true">background-color: DodgerBlue</string>
+         </property>
          <property name="text">
           <string>Добавить</string>
          </property>
@@ -207,6 +216,9 @@
        </item>
        <item>
         <widget class="QPushButton" name="btnDeleteType">
+         <property name="styleSheet">
+          <string notr="true">background-color: #FC6E50</string>
+         </property>
          <property name="text">
           <string>Удалить</string>
          </property>
@@ -219,6 +231,9 @@
      <layout class="QHBoxLayout" name="horizontalLayout_3">
       <item>
        <widget class="QPushButton" name="btnImportPayments">
+        <property name="styleSheet">
+         <string notr="true">background-color: DodgerBlue</string>
+        </property>
         <property name="text">
          <string>Импорт</string>
         </property>
@@ -242,6 +257,9 @@
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
        <widget class="QPushButton" name="btnExportPayments">
+        <property name="styleSheet">
+         <string notr="true">background-color: DodgerBlue</string>
+        </property>
         <property name="text">
          <string>Экспорт</string>
         </property>
@@ -262,6 +280,9 @@
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
        <widget class="QPushButton" name="btnChart">
+        <property name="styleSheet">
+         <string notr="true">background-color: DodgerBlue</string>
+        </property>
         <property name="text">
          <string>Диаграмма</string>
         </property>
@@ -290,6 +311,9 @@
     </item>
     <item row="0" column="2">
      <widget class="QPushButton" name="btnAddUser">
+      <property name="styleSheet">
+       <string notr="true">background-color: DodgerBlue</string>
+      </property>
       <property name="text">
        <string>Добавить пользователя</string>
       </property>
