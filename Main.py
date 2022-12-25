@@ -279,7 +279,7 @@ class UserFormWindow(QMainWindow):
 	def __init__(self, root):
 		super().__init__(root)
 		self.main = root
-		uic.loadUi("UserFrom.ui", self)
+		uic.loadUi("UserForm.ui", self)
 		self.btnAddUser.clicked.connect(self.addUser)
 
 	def addUser(self):

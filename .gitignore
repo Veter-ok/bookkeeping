@@ -131,3 +131,5 @@ dmypy.json
 # my files
 *.csv
 *.db
+*.ico
+setup.py
