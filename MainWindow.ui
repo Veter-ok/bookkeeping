@@ -111,7 +111,7 @@
        <item row="6" column="0" colspan="2">
         <widget class="QPushButton" name="btnAddData">
          <property name="styleSheet">
-          <string notr="true">background-color: DodgerBlue</string>
+          <string notr="true">background-color: #51CC64</string>
          </property>
          <property name="text">
           <string>Добавить</string>
@@ -183,7 +183,7 @@
        <item row="3" column="0" colspan="2">
         <widget class="QPushButton" name="btnAddType">
          <property name="styleSheet">
-          <string notr="true">background-color: DodgerBlue</string>
+          <string notr="true">background-color: #51CC64</string>
          </property>
          <property name="text">
           <string>Добавить</string>
@@ -232,7 +232,7 @@
       <item>
        <widget class="QPushButton" name="btnImportPayments">
         <property name="styleSheet">
-         <string notr="true">background-color: DodgerBlue</string>
+         <string notr="true"/>
         </property>
         <property name="text">
          <string>Импорт</string>
@@ -258,7 +258,7 @@
       <item>
        <widget class="QPushButton" name="btnExportPayments">
         <property name="styleSheet">
-         <string notr="true">background-color: DodgerBlue</string>
+         <string notr="true"/>
         </property>
         <property name="text">
          <string>Экспорт</string>
@@ -281,7 +281,7 @@
       <item>
        <widget class="QPushButton" name="btnChart">
         <property name="styleSheet">
-         <string notr="true">background-color: DodgerBlue</string>
+         <string notr="true"/>
         </property>
         <property name="text">
          <string>Диаграмма</string>
@@ -312,7 +312,7 @@
     <item row="0" column="2">
      <widget class="QPushButton" name="btnAddUser">
       <property name="styleSheet">
-       <string notr="true">background-color: DodgerBlue</string>
+       <string notr="true">background-color: #51CC64</string>
       </property>
       <property name="text">
        <string>Добавить пользователя</string>

@@ -92,7 +92,7 @@ class Bookkepping(QMainWindow):
 			if payment['isIncome']:
 				self.tablePayments.setItem(index, 0, QTableWidgetItem(f"+{str(payment['price'])}"))
 			else:
-				self.tablePayments.setItem(index, 0, QTableWidgetItem(f"-{str(payment['price'])}"))
+				self.tablePayments.setItem(index, 0, QTableWidgetItem("-" + str(abs(payment['price']))))
 			self.tablePayments.setItem(index, 1, QTableWidgetItem(payment['type']))
 			self.tablePayments.setItem(index, 2, QTableWidgetItem(payment['comment']))
 			self.tablePayments.setItem(index, 3, QTableWidgetItem(payment['date']))
@@ -376,10 +376,10 @@ class DB_Controller():
 							);""")
 		self.cursor.execute("""CREATE TABLE IF NOT EXISTS "payments" (
 								"id"	INTEGER NOT NULL UNIQUE,
-								"user"	INTEGER NOT NULL,
+								"user"	TEXT NOT NULL,
 								"price"	INTEGER NOT NULL,
 								"isIncome"	BLOB NOT NULL,
-								"type"	INTEGER NOT NULL,
+								"type"	TEXT NOT NULL,
 								"comment"	TEXT NOT NULL,
 								"date"	TEXT NOT NULL,
 								PRIMARY KEY("id" AUTOINCREMENT)
