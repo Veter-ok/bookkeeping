@@ -13,6 +13,10 @@ cd Bookkeeping
 ~~~
 
 ~~~bash
+pip install -r requirements.txt
+~~~
+
+~~~bash
 python3 Main.py
 ~~~
 
