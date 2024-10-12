@@ -5,11 +5,11 @@
 ## Начало работы
 
 ~~~bash  
-git clone https://github.com/Veter-ok/Bookkeeping.git
+git clone https://github.com/Veter-ok/bookkeeping.git
 ~~~
 
 ~~~bash
-cd Bookkeeping
+cd bookkeeping
 ~~~
 
 ~~~bash
