@@ -1,4 +1,4 @@
-# Bookkepping app with PyQT5
+# Bookkeeping app with PyQT5
 
 Данная программа создана для учёта доходов и расходов
 
